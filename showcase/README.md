@@ -14,6 +14,6 @@ Open `http://localhost:3000`. The page has no runtime dependencies. Google Fonts
 
 ## Deploy to Vercel
 
-Import the repository in Vercel and set the project root to `showcase`. No build command or output directory is needed. The included Node start script also supports a generic Node host.
+Import the repository in Vercel and set the project root to `showcase`. Vercel serves the static files from `public`; no build command is needed. The local Node server is named `dev-server.js` so Vercel does not mistake it for a production server entry point.
 
 CLI behavior is described in the parent repository's README and schema documentation. The terminal accepts only the three documented command names and returns illustrative output; it never executes them. This is a local prototype, not a live CLI integration.
