@@ -1,0 +1,8 @@
+import fs from 'node:fs';
+
+const manifest = JSON.parse(
+  fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+);
+
+export const PACKAGE_NAME = manifest.name;
+export const VERSION = manifest.version;

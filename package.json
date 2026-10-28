@@ -1,0 +1,25 @@
+{
+  "name": "ziki-cli",
+  "version": "0.1.0",
+  "description": "Read-only project status for humans working with coding agents.",
+  "type": "module",
+  "bin": {
+    "ziki": "./bin/ziki.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "bin",
+    "src",
+    "docs",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "bench": "node --test tests/bench/perf.bench.js"
+  },
+  "dependencies": {},
+  "private": true,
+  "license": "UNLICENSED"
+}

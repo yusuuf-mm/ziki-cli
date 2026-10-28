@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f9fc" />
+    <meta name="description" content="A project view for Yusuf Musa and the Ziki CLI, with clear human-agent handoffs." />
+    <title>Zedu project · Ziki</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="topbar">
+      <a class="brand" href="#main" aria-label="Ziki project"><span class="brand-mark" aria-hidden="true">z</span><span>ziki</span></a>
+      <nav class="main-nav" aria-label="Project navigation"><a class="active" href="#main" aria-current="page">Project</a><a href="#team">Agents</a><a href="#cli">CLI guide</a><a href="#handoff">Human handoff</a></nav>
+      <div class="topbar-right"><span class="sample-state"><i></i> Local example</span><span class="avatar owner-avatar" aria-hidden="true">YM</span><span class="owner-name">Yusuf Musa</span></div>
+    </header>
+
+    <main class="page" id="main">
+      <section class="project-heading" aria-labelledby="project-title">
+        <div><p class="eyebrow">PROJECT <span class="eyebrow-divider">/</span> PERSONAL WORKING VIEW</p><h1 id="project-title">Zedu</h1><p class="project-description">A clear place for you and your agents to understand the work, use Ziki, and keep decisions human.</p></div>
+        <div class="project-actions"><button class="project-switch" id="project-switch" type="button" aria-haspopup="dialog"><span class="project-icon" aria-hidden="true">P</span><span><small>PROJECT</small><strong id="project-name">Zedu</strong></span><span class="chevron" aria-hidden="true">⌄</span></button><span class="local-note">Saved in this browser</span></div>
+      </section>
+
+      <section class="intro-band" aria-label="Project status note"><span class="intro-symbol" aria-hidden="true">i</span><p><strong>Your project, your call.</strong> Ziki reads repository state and makes changes visible. Your agents help with the work; you decide what gets approved.</p><span class="connection-state"><i></i> CLI example only</span></section>
+
+      <section class="quick-links" aria-label="Ziki CLI commands">
+        <a class="quick-link" href="#cli" data-command="status"><span class="quick-number">01</span><span><strong>Check project state</strong><code>ziki status</code></span><span class="quick-arrow" aria-hidden="true">↘</span></a>
+        <a class="quick-link" href="#cli" data-command="init"><span class="quick-number">02</span><span><strong>Plan setup</strong><code>ziki init</code></span><span class="quick-arrow" aria-hidden="true">↘</span></a>
+        <a class="quick-link" href="#cli" data-command="review"><span class="quick-number">03</span><span><strong>Review changes</strong><code>ziki review</code></span><span class="quick-arrow" aria-hidden="true">↘</span></a>
+      </section>
+
+      <section class="section team-section" id="team" aria-labelledby="team-title">
+        <div class="section-heading"><div><p class="eyebrow">PEOPLE AND AGENTS</p><h2 id="team-title">Who’s on this project?</h2><p class="section-subtitle">A small team, with clear roles and a human at the center.</p></div><div class="team-actions"><span class="team-count" id="agent-count">4 agents</span><button class="button button-light" id="add-agent" type="button"><span aria-hidden="true">+</span> Add an agent</button></div></div>
+        <div class="team-table-wrap"><div class="team-table-head"><span>PERSON / AGENT</span><span>ROLE</span></div><div class="team-list" id="team-list" aria-live="polite"></div></div>
+        <p class="section-note">Agent names and roles are stored in this browser for this example. They are not connected to CLI or agent sessions.</p>
+      </section>
+
+      <section class="section cli-section" id="cli" aria-labelledby="cli-title">
+        <div class="section-heading cli-section-heading"><div><p class="eyebrow">ZIKI CLI · EXAMPLE MODE</p><h2 id="cli-title">Try a command. See what it means.</h2><p class="section-subtitle">The same project facts, in a form that’s easier to scan.</p></div><span class="example-badge"><i></i> No shell · sample output</span></div>
+        <div class="command-workbench">
+          <div class="command-selector" role="tablist" aria-label="Choose a Ziki command">
+            <button class="command-tab selected" id="tab-status" type="button" role="tab" aria-selected="true" aria-controls="command-explanation" tabindex="0" data-command="status"><span>01</span> status</button>
+            <button class="command-tab" id="tab-init" type="button" role="tab" aria-selected="false" aria-controls="command-explanation" tabindex="-1" data-command="init"><span>02</span> init</button>
+            <button class="command-tab" id="tab-review" type="button" role="tab" aria-selected="false" aria-controls="command-explanation" tabindex="-1" data-command="review"><span>03</span> review</button>
+            <p class="selector-hint">Select a command to explore it.</p>
+          </div>
+          <div class="command-content">
+            <article class="command-explanation" id="command-explanation" role="tabpanel" aria-labelledby="tab-status" tabindex="0"><span class="command-label" id="command-label">A READ-ONLY SNAPSHOT</span><h3 id="command-title">Start by seeing what’s there.</h3><p id="command-description">Ziki reports the branch, working tree, agent files, and likely checks. It does not run project commands.</p><div class="human-callout"><span class="human-icon" aria-hidden="true">Y</span><span><strong id="human-title">Your time stays yours.</strong><small id="human-detail">Suggested checks are labeled “detected, not run”.</small></span></div></article>
+            <section class="terminal" aria-label="Interactive example terminal"><div class="terminal-top"><span class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="terminal-project" id="terminal-project">ziki · zedu</span><span class="example-badge-small">EXAMPLE</span></div><div class="terminal-screen" id="terminal-screen" role="log" aria-live="polite"><pre id="terminal-output">$ ziki status
+  repo      ./your-project
+  branch    main
+  worktree  clean
+  checks    test  npm test  (detected, not run)</pre></div><form class="terminal-form" id="terminal-form"><label for="terminal-input" class="terminal-prompt" aria-label="Enter an example Ziki command">$</label><input id="terminal-input" name="command" type="text" autocomplete="off" spellcheck="false" aria-describedby="terminal-hint" placeholder="try: ziki review" /><button type="submit" aria-label="Run example command">Run</button></form><p class="terminal-hint" id="terminal-hint">Try <button type="button" class="inline-command" data-fill-command="ziki status">ziki status</button>, <button type="button" class="inline-command" data-fill-command="ziki init">ziki init</button>, or <button type="button" class="inline-command" data-fill-command="ziki review">ziki review</button>. Example output only.</p></section>
+          </div>
+        </div>
+        <p class="section-note">The terminal accepts only the three documented command names. It does not execute a shell or connect to your repository.</p>
+      </section>
+
+      <section class="section handoff-section" id="handoff" aria-labelledby="handoff-title">
+        <div class="handoff-heading"><p class="eyebrow">HUMAN AND AGENT, TOGETHER</p><h2 id="handoff-title">Good work leaves room<br /><span>for your decision.</span></h2><p>Agents can inspect, suggest, and make changes. Ziki keeps the plan and review visible so you can choose the next step.</p></div>
+        <div class="handoff-flow"><div class="flow-step"><span class="flow-mark mark-agent">A</span><div><small>AGENT</small><strong>Suggests a change</strong><p>Make the next step easy to understand.</p></div></div><span class="flow-arrow" aria-hidden="true">↓</span><div class="flow-step"><span class="flow-mark mark-ziki">z</span><div><small>ZIKI CLI</small><strong>Shows the plan or review</strong><p><code>init</code> asks before writing. <code>review</code> reads without changing files.</p></div></div><span class="flow-arrow" aria-hidden="true">↓</span><div class="flow-step human-step"><span class="flow-mark mark-human">Y</span><div><small>Yusuf Musa</small><strong>You decide what happens</strong><p>Approval belongs to the person doing the work.</p></div></div></div>
+      </section>
+      <footer class="footer"><a class="footer-brand" href="#main"><span class="brand-mark" aria-hidden="true">z</span> ziki</a><span>Built around your project and your way of working.</span><span>Local example · no live connection</span></footer>
+    </main>
+
+    <dialog class="form-dialog" id="project-dialog" aria-labelledby="project-dialog-title"><form id="project-form"><div class="dialog-top"><div><p class="eyebrow">PROJECT</p><h2 id="project-dialog-title">Switch or add a project</h2></div><button class="dialog-close" type="button" data-close-dialog aria-label="Close project dialog">×</button></div><label for="project-select">Current project</label><select id="project-select" name="project"></select><div class="form-divider"><span>Or add a project</span></div><label for="new-project-name">Project name</label><input id="new-project-name" name="newProject" maxlength="48" placeholder="For example, Zedu website" /><p class="form-error" id="project-error" aria-live="polite"></p><div class="dialog-actions"><button class="button button-light" type="button" data-close-dialog>Cancel</button><button class="button button-primary" type="submit">Save project</button></div><p class="dialog-note">Project names are saved in this browser only.</p></form></dialog>
+
+    <dialog class="form-dialog" id="agent-dialog" aria-labelledby="agent-dialog-title"><form id="agent-form"><div class="dialog-top"><div><p class="eyebrow">PROJECT TEAM</p><h2 id="agent-dialog-title">Add an agent</h2></div><button class="dialog-close" type="button" data-close-dialog aria-label="Close agent dialog">×</button></div><label for="agent-name">Agent name</label><input id="agent-name" name="agentName" maxlength="36" required placeholder="Name your agent" /><label for="agent-role">What does this agent do?</label><select id="agent-role" name="agentRole"><option>Contributor</option><option>Reviewer</option><option>Triage</option></select><p class="form-error" id="agent-error" aria-live="polite"></p><div class="dialog-actions"><button class="button button-light" type="button" data-close-dialog>Cancel</button><button class="button button-primary" type="submit">Add to project</button></div><p class="dialog-note">This adds the name and role to this browser’s project view. It does not create or connect an agent.</p></form></dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="script.js" defer></script>
+  </body>
+</html>
