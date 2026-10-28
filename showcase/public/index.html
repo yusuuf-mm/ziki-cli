@@ -16,7 +16,7 @@
     <header class="topbar">
       <a class="brand" href="#main" aria-label="Ziki project"><span class="brand-mark" aria-hidden="true">z</span><span>ziki</span></a>
       <nav class="main-nav" aria-label="Project navigation"><a class="active" href="#main" aria-current="page">Project</a><a href="#team">Agents</a><a href="#cli">CLI guide</a><a href="#handoff">Human handoff</a></nav>
-      <div class="topbar-right"><span class="sample-state"><i></i> Local example</span><span class="avatar owner-avatar" aria-hidden="true">YM</span><span class="owner-name">Yusuf Musa</span></div>
+      <div class="topbar-right"><button class="sample-state sample-state-button" id="playground-jump" type="button" aria-controls="playground"><i></i> Local playground</button><span class="avatar owner-avatar" aria-hidden="true">YM</span><span class="owner-name">Yusuf Musa</span></div>
     </header>
 
     <main class="page" id="main">
@@ -57,14 +57,37 @@
   checks    test  npm test  (detected, not run)</pre></div><form class="terminal-form" id="terminal-form"><label for="terminal-input" class="terminal-prompt" aria-label="Enter an example Ziki command">$</label><input id="terminal-input" name="command" type="text" autocomplete="off" spellcheck="false" aria-describedby="terminal-hint" placeholder="try: ziki review" /><button type="submit" aria-label="Run example command">Run</button></form><p class="terminal-hint" id="terminal-hint">Try <button type="button" class="inline-command" data-fill-command="ziki status">ziki status</button>, <button type="button" class="inline-command" data-fill-command="ziki init">ziki init</button>, or <button type="button" class="inline-command" data-fill-command="ziki review">ziki review</button>. Example output only.</p></section>
           </div>
         </div>
-        <p class="section-note">The terminal accepts only the three documented command names. It does not execute a shell or connect to your repository.</p>
+        <p class="section-note">The terminal above only replays sample output. The playground below runs the real CLI on a disposable demo repository.</p>
+      </section>
+
+      <section class="section playground-section" id="playground" aria-labelledby="playground-title">
+        <div class="section-heading playground-heading">
+          <div>
+            <p class="eyebrow">LOCAL PLAYGROUND · REAL CLI</p>
+            <h2 id="playground-title">Run Ziki on a disposable demo repository.</h2>
+            <p class="section-subtitle" id="playground-note" role="status">Checking whether the local playground is available…</p>
+          </div>
+          <span class="playground-state" id="playground-state"><i></i><span id="playground-state-text">Checking</span></span>
+        </div>
+        <div class="playground" id="playground-panel">
+          <div class="playground-actions" id="playground-actions" hidden>
+            <button class="button button-light" type="button" data-playground-action="status">1 · Run status</button>
+            <button class="button button-light" type="button" data-playground-action="plan">2 · Plan init</button>
+            <button class="button button-primary" type="button" data-playground-action="apply" disabled>3 · Approve &amp; apply</button>
+            <button class="button button-light" type="button" data-playground-action="review">4 · Run review</button>
+            <button class="button button-light" type="button" data-playground-action="reset">Reset demo</button>
+          </div>
+          <p class="playground-workspace" id="playground-workspace" hidden></p>
+          <pre class="playground-output" id="playground-output" hidden aria-live="polite"></pre>
+          <p class="playground-help">The playground runs the repository's own <code>bin/ziki.js</code> through Node against a disposable workspace in your system temp directory. It does not touch your projects or run project scripts. Approve &amp; apply appears only after a plan is shown, and asks for confirmation.</p>
+        </div>
       </section>
 
       <section class="section handoff-section" id="handoff" aria-labelledby="handoff-title">
         <div class="handoff-heading"><p class="eyebrow">HUMAN AND AGENT, TOGETHER</p><h2 id="handoff-title">Good work leaves room<br /><span>for your decision.</span></h2><p>Agents can inspect, suggest, and make changes. Ziki keeps the plan and review visible so you can choose the next step.</p></div>
         <div class="handoff-flow"><div class="flow-step"><span class="flow-mark mark-agent">A</span><div><small>AGENT</small><strong>Suggests a change</strong><p>Make the next step easy to understand.</p></div></div><span class="flow-arrow" aria-hidden="true">↓</span><div class="flow-step"><span class="flow-mark mark-ziki">z</span><div><small>ZIKI CLI</small><strong>Shows the plan or review</strong><p><code>init</code> asks before writing. <code>review</code> reads without changing files.</p></div></div><span class="flow-arrow" aria-hidden="true">↓</span><div class="flow-step human-step"><span class="flow-mark mark-human">Y</span><div><small>Yusuf Musa</small><strong>You decide what happens</strong><p>Approval belongs to the person doing the work.</p></div></div></div>
       </section>
-      <footer class="footer"><a class="footer-brand" href="#main"><span class="brand-mark" aria-hidden="true">z</span> ziki</a><span>Built around your project and your way of working.</span><span>Local example · no live connection</span></footer>
+      <footer class="footer"><a class="footer-brand" href="#main"><span class="brand-mark" aria-hidden="true">z</span> ziki</a><span>Built around your project and your way of working.</span><span id="footer-mode">Local example · no live connection</span></footer>
     </main>
 
     <dialog class="form-dialog" id="project-dialog" aria-labelledby="project-dialog-title"><form id="project-form"><div class="dialog-top"><div><p class="eyebrow">PROJECT</p><h2 id="project-dialog-title">Switch or add a project</h2></div><button class="dialog-close" type="button" data-close-dialog aria-label="Close project dialog">×</button></div><label for="project-select">Current project</label><select id="project-select" name="project"></select><div class="form-divider"><span>Or add a project</span></div><label for="new-project-name">Project name</label><input id="new-project-name" name="newProject" maxlength="48" placeholder="For example, Zedu website" /><p class="form-error" id="project-error" aria-live="polite"></p><div class="dialog-actions"><button class="button button-light" type="button" data-close-dialog>Cancel</button><button class="button button-primary" type="submit">Save project</button></div><p class="dialog-note">Project names are saved in this browser only.</p></form></dialog>

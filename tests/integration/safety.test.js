@@ -300,7 +300,7 @@ test('checks are reported as detected but never executed', (t) => {
   assert.equal(doc.checks[0].executed, false);
 });
 
-test('init apply writes only ziki.json and leaves every other file untouched', (t) => {
+test('init apply writes only the contracted files and leaves everything else untouched', (t) => {
   const dir = initRepo();
   t.after(() => cleanup(dir));
   write(dir, 'package.json', JSON.stringify({ scripts: { test: 'node --test' } }));
@@ -312,8 +312,14 @@ test('init apply writes only ziki.json and leaves every other file untouched', (
 
   const after = treeFiles(dir);
   const added = [...after.keys()].filter((file) => !before.has(file));
-  assert.deepEqual(added, ['ziki.json']);
-  assert.equal(after.size, before.size + 1);
+  // Phase 4: ziki.json plus the three managed agent files.
+  assert.deepEqual(added, [
+    '.claude/commands/ziki.md',
+    '.claude/skills/ziki/SKILL.md',
+    '.opencode/commands/ziki.md',
+    'ziki.json',
+  ]);
+  assert.equal(after.size, before.size + 4);
 
   for (const [file, digest] of before) {
     assert.equal(after.get(file), digest, `${file} changed`);

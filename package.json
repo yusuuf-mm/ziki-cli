@@ -1,7 +1,7 @@
 {
   "name": "ziki-cli",
   "version": "0.1.0",
-  "description": "Read-only project status for humans working with coding agents.",
+  "description": "Status, setup, and change review for repositories shared by humans and coding agents.",
   "type": "module",
   "bin": {
     "ziki": "./bin/ziki.js"

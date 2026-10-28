@@ -119,7 +119,7 @@ Recognized locations:
 | `claude-skill` | `.claude/skills/<name>/SKILL.md` |
 | `claude-command` | `.claude/commands/<name>.md` |
 | `opencode-skill` | `.opencode/skills/<name>/SKILL.md` |
-| `opencode-command` | `.opencode/commands/<name>.md` |
+| `opencode-command` | `.opencode/commands/<name>.md` and the singular `.opencode/command/<name>.md` (OD-08; detected where present, never written) |
 | `agents-skill` | `.agents/skills/<name>/SKILL.md` |
 | `instructions` | `AGENTS.md` or `CLAUDE.md` at the repository root |
 

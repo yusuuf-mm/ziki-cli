@@ -137,6 +137,21 @@ button, input, select { color: inherit; font: inherit; }
 .terminal-hint { margin: 0; padding: 0 13px 12px; background: #fff; color: #586875; font-size: 9px; line-height: 1.8; }
 .inline-command { padding: 0; border: 0; background: transparent; color: #286ba9; font-family: var(--mono); font-size: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 
+.sample-state-button { padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; }
+.sample-state-button:hover { color: var(--blue-strong); }
+.playground-section { padding-top: 46px; }
+.playground-heading { align-items: center; }
+.playground { padding: 17px; border: 1px solid #d7e0e8; border-radius: 9px; background: #fff; }
+.playground-state { display: flex; align-items: center; gap: 7px; padding: 5px 8px; border: 1px solid #dce6ed; border-radius: 4px; color: #586875; font-family: var(--mono); font-size: 8px; white-space: nowrap; }
+.playground-state i { width: 7px; height: 7px; border-radius: 50%; background: #b9a06a; }
+.playground-state.ready i { background: #78a789; }
+.playground-state.unavailable i { background: #c08a8a; }
+.playground-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.playground-workspace { margin: 12px 0 0; color: #526f8a; font-family: var(--mono); font-size: 9px; overflow-wrap: anywhere; }
+.playground-output { min-height: 110px; max-height: 360px; margin: 12px 0 0; padding: 13px 15px; overflow: auto; border: 1px solid #ccd7e2; border-radius: 7px; background: #f1f6fb; color: #17212a; font-family: var(--mono); font-size: 11px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.playground-help { margin: 12px 0 0; color: #697783; font-size: 10px; line-height: 1.7; }
+.playground-help code { font-family: var(--mono); font-size: 10px; }
+
 .handoff-section { display: grid; grid-template-columns: .9fr 1.1fr; gap: 65px; align-items: center; padding-block: 100px 90px; }
 .handoff-heading h2 { margin: 0 0 13px; font-size: clamp(31px, 3.2vw, 42px); line-height: 1.18; letter-spacing: -1.1px; font-weight: 600; }
 .handoff-heading h2 span { color: #527ca1; }
@@ -233,6 +248,10 @@ button, input, select { color: inherit; font: inherit; }
   .terminal-screen { min-height: 145px; padding: 12px; }
   .terminal-screen pre { font-size: 9px; }
   .terminal-hint { font-size: 8px; }
+  .playground-heading { align-items: flex-start; }
+  .playground { padding: 13px; }
+  .playground-output { font-size: 9px; }
+  .playground-help { font-size: 9px; }
   .handoff-section { padding-block: 69px 58px; }
   .handoff-heading h2 { font-size: 31px; }
   .handoff-heading > p:last-child { font-size: 12px; }

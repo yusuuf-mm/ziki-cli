@@ -8,14 +8,15 @@ work together. `ziki status` answers three questions in one screen:
 3. Which verification commands does this project appear to use?
 
 It never runs those commands or touches the network. `status` writes nothing;
-`init` writes one configuration file, and only after approval; `review`
-inspects changes read-only.
+`init` writes `ziki.json` and the agent skill/command files, and only after
+approval; `review` inspects changes read-only.
 
-**Phase 3.** This release contains the read-only `status` command, plan-first
-`init`, and the read-only `review` command. `review` summarizes staged,
-unstaged, and untracked changes, reports check states, and warns about
-secret-shaped strings in added lines. Harness integration and publishing are
-not implemented yet.
+**Phase 4.** This release contains the read-only `status` command, plan-first
+`init`, the read-only `review` command, and the `/ziki` agent integration: the
+same `init` generates a shared skill and slash-command files for Claude Code
+and OpenCode that walk an agent through inspect → plan → human approval → work
+→ verify → review → present. Publishing and a deploy pipeline are not
+implemented yet.
 
 ## Requirements
 
@@ -95,14 +96,19 @@ are part of the tests, not of the consumer contract.
 
 ## Initialize a project
 
-`ziki init` inspects the repository and proposes one `ziki.json` at the
-repository root. It writes nothing by default:
+`ziki init` inspects the repository and proposes `ziki.json` plus three agent
+files: a shared skill at `.claude/skills/ziki/SKILL.md` and one command file
+per harness at `.claude/commands/ziki.md` and `.opencode/commands/ziki.md`.
+It writes nothing by default:
 
 ```console
 $ node bin/ziki.js init
 ziki init (plan)
   repo      /home/dev/project
   config    ziki.json  (new)
+  agent     .claude/skills/ziki/SKILL.md  (new)
+  agent     .claude/commands/ziki.md  (new)
+  agent     .opencode/commands/ziki.md  (new)
   checks    test      npm test  (package.json#scripts.test)
 
 --- ziki.json (new) ---
@@ -115,15 +121,19 @@ ziki init (plan)
         "source": "package.json#scripts.test"
       }
     ],
-    "managedFiles": {},
+    "managedFiles": {
+      ".claude/skills/ziki/SKILL.md": "sha256:...",
+      ".claude/commands/ziki.md": "sha256:...",
+      ".opencode/commands/ziki.md": "sha256:..."
+    },
     "integrity": {
       "algorithm": "sha256",
       "hash": "..."
     }
   }
 
-Summary: 1 file to create.
-No files written. Re-run with --apply to write.
+--- .claude/skills/ziki/SKILL.md (new) ---
+  ...
 ```
 
 Apply only after reading the plan:
@@ -134,15 +144,47 @@ $ node bin/ziki.js init --apply
 
 On a terminal Ziki asks `Apply these changes? [y/N]`. In a non-interactive
 shell, pass `--apply --yes`. A global yes does not overwrite an existing file:
-name each such file with `--confirm ziki.json`. A rerun with nothing to change
-writes nothing and needs no confirmation.
+name each such file with `--confirm <path>` — for example
+`--confirm ziki.json` or `--confirm .claude/skills/ziki/SKILL.md`. A rerun with
+nothing to change writes nothing and needs no confirmation.
 
 `ziki.json` records the detected checks, any unknown fields Ziki does not own,
-the hashes of files it manages (reserved for Phase 4), and a SHA-256 integrity
-hash of its own contents. Hand edits are detected and labeled (`integrity
-mismatch` or `modified since last write`) and are not overwritten without
-confirmation. The format is documented in
-[`docs/config-schema-v1.md`](docs/config-schema-v1.md).
+the hashes of the agent files Ziki wrote (`managedFiles`), and a SHA-256
+integrity hash of its own contents. Hand edits are detected and labeled
+(`integrity mismatch`, `modified since last write`, or `not written by ziki
+init`) and are not overwritten without confirmation. The format is documented
+in [`docs/config-schema-v1.md`](docs/config-schema-v1.md).
+
+### Use `/ziki` from an agent
+
+The generated files use only documented frontmatter fields (`name` and
+`description` for the skill, `description` for commands) and contain no
+machine-specific paths. The skill and both command files guide the agent
+through the fixed workflow: inspect with `status`, plan with `init`, get an
+explicit human yes before `init --apply`, implement the task, verify with the
+project's own checks, review with `ziki review`, and present changes, real
+check results, and open decisions.
+
+The files never call a bare `ziki` command, because on some machines that name
+belongs to the unrelated **Ziki bounty platform** (its own skill and `/ziki`
+command are installed at user level). Name resolution matters: Claude Code
+gives a **personal** (user-level) skill priority over a project skill with the
+same name, and OpenCode de-duplicates skill names across locations. So on a
+machine where the bounty platform's user-level `ziki` skill is installed,
+`/ziki` runs that skill, not this repository workflow, even inside a
+configured repository. On a machine without a conflicting `ziki` skill, the
+generated project skill and command load normally. Every template instructs
+the agent to run:
+
+```console
+$ node <ziki-cli>/bin/ziki.js status
+```
+
+Replace `<ziki-cli>` with this checkout's path; the agent is told to ask the
+human if it does not know it. After a global install, the installed binary is
+also `ziki`; check `ziki --version` before relying on it. The template contract
+is documented in
+[`docs/agent-integration-v1.md`](docs/agent-integration-v1.md).
 
 Do not put secrets in `ziki.json`: plans print the file's proposed contents and
 diffs so a human can approve them.
@@ -252,9 +294,12 @@ tallies (staged, modified, untracked, deleted, renamed, conflicted, clean).
 | `claude-skill` | `.claude/skills/<name>/SKILL.md` |
 | `claude-command` | `.claude/commands/<name>.md` |
 | `opencode-skill` | `.opencode/skills/<name>/SKILL.md` |
-| `opencode-command` | `.opencode/commands/<name>.md` |
+| `opencode-command` | `.opencode/commands/<name>.md` and `.opencode/command/<name>.md` |
 | `agents-skill` | `.agents/skills/<name>/SKILL.md` |
 | `instructions` | `AGENTS.md`, `CLAUDE.md` |
+
+OpenCode's singular `command/` directory is detected where an existing install
+uses it (OD-08); `init` always writes the documented plural `commands/`.
 
 **Verification commands, from manifests only:**
 
@@ -274,18 +319,24 @@ An invalid manifest contributes nothing and does not crash the command.
   state. Git optional locks are disabled (`GIT_OPTIONAL_LOCKS=0`), so `status`
   does not refresh `.git/index`. Review reads unstaged content with
   `git diff-files` for the same reason: the index is never touched.
-- **One write path.** `init --apply` writes exactly one file, `ziki.json` at the
-  repository root, after displaying its plan and obtaining approval. `review`
+- **One write path.** `init --apply` is the only command that writes: exactly
+  `ziki.json` at the repository root plus the three fixed agent files above,
+  after displaying the plan and obtaining approval. It never edits any other
+  agent file and never reads anyone else's skill or command contents. `review`
   writes nothing, not even `ziki.json`.
-- **No clobber.** An existing `ziki.json` is rewritten only with
-  `--confirm ziki.json` naming that file. A global `--yes` is not enough. Files
-  that changed since Ziki recorded their hash are labeled and refused the same
-  way. Nothing is written when any confirmation is missing, and the target is
-  re-read immediately before writing so a file edited after the plan is never
+- **No clobber.** An existing `ziki.json` or agent file is rewritten only with
+  `--confirm <path>` naming that file, and only after its full contents or
+  diff were displayed. A global `--yes` is not enough. Files that changed since
+  Ziki recorded their hash are labeled and refused the same way. Nothing is
+  written when any confirmation is missing, and every target is re-read
+  immediately before writing so a file edited after the plan is never
   overwritten under stale approval.
 - **Atomic and contained.** Writes use a temporary file in the target
-  directory, `fsync`, and rename. Symlinks, directories, and paths outside the
-  repository are refused before writing.
+  directory, `fsync`, and rename; missing parent directories are created
+  inside the repository only. Symlinks, directories, and paths outside the
+  repository are refused before writing. Files are written independently
+  (agent files first, `ziki.json` last); a failure midway leaves the earlier
+  files valid, and the next `init` reports and repairs the difference.
 - **No execution.** Detected commands are suggestions; nothing ever runs them.
   Git itself runs without a shell, only allowlisted read subcommands are
   accepted, and Git calls time out after 30 seconds. Review's only extra Git
@@ -309,8 +360,10 @@ An invalid manifest contributes nothing and does not crash the command.
   prints file contents or matched values anywhere (findings carry only path,
   line, scope, and rule), and never scans files outside the reviewed change
   set. The PRD's SP-06 was clarified on 2026-10-28 to allow exactly this.
-- **No agent edits.** Agent configuration files are listed, never parsed or
-  modified by Ziki.
+- **No agent edits.** Agent configuration files other than the three fixed
+  templates are only listed — never parsed or modified. The skill/command
+  templates are written by `init` with the same approval and no-clobber rules
+  as `ziki.json`.
 - **Terminal-safe output.** Control characters from repository data are escaped
   before human output, and `--debug` stack traces redact absolute paths outside
   the repository.
@@ -341,10 +394,51 @@ The suite uses `node:test` and `node:assert/strict` only. Tests create
 disposable Git repositories in the system temporary directory; they do not run
 project scripts and do not touch sibling repositories.
 
+## Install
+
+### From a local tarball (verified for this version)
+
+Build the package from a checkout and install it globally:
+
+```console
+$ npm pack
+$ npm install -g ./ziki-cli-0.1.0.tgz
+$ ziki --version
+```
+
+Or install it into a single project without touching the global prefix:
+
+```console
+$ npm install ./ziki-cli-0.1.0.tgz
+$ npx ziki status
+```
+
+The tarball contains `bin/`, `src/`, `docs/`, and this README; tests and
+fixtures are excluded. The CLI has no runtime dependencies and needs Node.js
+20 or newer.
+
+The installed command is named `ziki`. On some machines another tool already
+uses that name (for example an unrelated bounty-platform CLI). If `ziki
+--version` does not print this package's version, call the binary by path:
+`node <install-prefix>/node_modules/ziki-cli/bin/ziki.js`.
+
+### From npm (not available yet)
+
+`ziki-cli` is **not published to npm**. Do not run `npm install -g ziki-cli`
+until a release is published: the name is currently unclaimed there and the
+command would install nothing. The planned command, once a release is
+approved and published, is:
+
+```console
+$ npm install -g ziki-cli
+```
+
 ## Status of the package
 
-The package is `private` and `UNLICENSED` while the npm name, license, and
-publishing path are undecided. For now, run it from source:
+The package is `private` and `UNLICENSED` while the license and publishing
+path are undecided, so `npm publish` is blocked on purpose. Publishing also
+requires choosing a license and adding a `LICENSE` file. Run it from source
+meanwhile:
 
 ```console
 $ node bin/ziki.js --help

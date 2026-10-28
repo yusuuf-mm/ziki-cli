@@ -43,7 +43,8 @@ test('templates contain CLI invocation placeholder', (t) => {
   }
 });
 
-test('template bodies mention all 7 workflow steps (case-insensitive)', (t) => {
+test('SKILL.md mentions all 7 workflow steps; commands summarize the sequence', (t) => {
+  const skill = AGENT_TEMPLATES.find((t) => t.kind === 'claude-skill');
   const steps = [
     'Inspect',
     'Plan',
@@ -53,11 +54,20 @@ test('template bodies mention all 7 workflow steps (case-insensitive)', (t) => {
     'Review',
     'Present decisions',
   ];
-  for (const { content } of AGENT_TEMPLATES) {
-    for (const step of steps) {
-      // Case-insensitive match so "inspect"/"INSPECT" both work.
-      assert.match(content, new RegExp(step, 'i'),
-        `template body must mention (“${step}”) step`);
+  for (const step of steps) {
+    assert.match(skill.content, new RegExp(step),
+      `SKILL.md must contain the (“${step}”) step`);
+  }
+
+  // Command files are short pointers: they must name the sequence, not repeat
+  // the full section headings.
+  for (const { content, path: p } of AGENT_TEMPLATES) {
+    if (p === '.claude/skills/ziki/SKILL.md') {
+      continue;
+    }
+    for (const word of ['status', 'approval', 'verify', 'review', 'decisions']) {
+      assert.match(content, new RegExp(word, 'i'),
+        `${p} must mention "${word}"`);
     }
   }
 });

@@ -48,10 +48,10 @@ const commandDetails = {
   init: {
     label: "APPROVAL BEFORE WRITING",
     title: "See the setup plan first.",
-    description: "Ziki proposes a ziki.json using checks found in the project. Planning is the default and writes nothing.",
+    description: "Ziki proposes a ziki.json plus the agent skill and command files. Planning is the default and writes nothing.",
     humanTitle: "You approve before it writes.",
     human: "Applying setup requires approval. Existing files need their own confirmation.",
-    output: "$ ziki init\n  ziki init (plan)\n  config    ziki.json  (new)\n  checks    test      npm test\n\n  Summary: 1 file to create.\n  No files written. Re-run with --apply.",
+    output: "$ ziki init\n  ziki init (plan)\n  config    ziki.json  (new)\n  agent     .claude/skills/ziki/SKILL.md  (new)\n  agent     .claude/commands/ziki.md  (new)\n  agent     .opencode/commands/ziki.md  (new)\n  checks    test      npm test\n\n  Summary: 4 files to create.\n  No files written. Re-run with --apply.",
   },
   review: {
     label: "READ-ONLY CHANGE REVIEW",
@@ -309,3 +309,168 @@ document.querySelector("#terminal-form").addEventListener("submit", (event) => {
 });
 
 renderProject();
+
+// --- Local playground -------------------------------------------------------
+// This only works when the page is served by showcase/dev-server.js. It calls
+// fixed, same-origin endpoints that run the repository's real CLI against a
+// disposable demo workspace. On the hosted static build the health check fails
+// and this section explains how to run it locally instead.
+const playground = { available: false, busy: false, planReady: false };
+const playgroundState = document.querySelector("#playground-state");
+const playgroundStateText = document.querySelector("#playground-state-text");
+const playgroundNote = document.querySelector("#playground-note");
+const playgroundActions = document.querySelector("#playground-actions");
+const playgroundWorkspace = document.querySelector("#playground-workspace");
+const playgroundOutput = document.querySelector("#playground-output");
+const playgroundButtons = [...document.querySelectorAll("[data-playground-action]")];
+const footerMode = document.querySelector("#footer-mode");
+
+function setPlaygroundState(text, mode = "") {
+  playgroundState.classList.remove("ready", "unavailable");
+  if (mode) playgroundState.classList.add(mode);
+  playgroundStateText.textContent = text;
+}
+
+function setPlaygroundBusy(busy) {
+  playground.busy = busy;
+  for (const button of playgroundButtons) {
+    button.disabled =
+      busy || (button.dataset.playgroundAction === "apply" && !playground.planReady);
+  }
+}
+
+function showPlaygroundOutput(text) {
+  playgroundOutput.hidden = false;
+  playgroundOutput.textContent = text;
+}
+
+function renderPlaygroundResult(label, result) {
+  const parts = [`$ ${label}`];
+  if (result.workspace) parts.push(`workspace: ${result.workspace}`);
+  if (result.stdout) parts.push(result.stdout.trimEnd());
+  if (result.stderr) parts.push(`[stderr]\n${result.stderr.trimEnd()}`);
+  if (result.error) parts.push(`[error] ${result.error}`);
+  if (result.timedOut) parts.push("[timed out]");
+  else if (typeof result.exitCode === "number") parts.push(`[exit ${result.exitCode}]`);
+  showPlaygroundOutput(parts.join("\n"));
+  playgroundNote.textContent = result.ok
+    ? "Real CLI output above. The workspace is disposable; use Reset demo to start over."
+    : "The CLI reported a problem; its real output is shown above.";
+}
+
+async function detectPlayground() {
+  try {
+    const response = await fetch("api/health", { cache: "no-store" });
+    if (!response.ok) throw new Error(`health returned ${response.status}`);
+    const health = await response.json();
+    if (!health.backend) throw new Error("backend flag missing");
+    playground.available = true;
+    const missing = [];
+    if (!health.cli?.available) missing.push("the ziki-cli entry point");
+    if (!health.git?.available) missing.push("git");
+    setPlaygroundState(missing.length ? "Prerequisites missing" : "Connected", missing.length ? "unavailable" : "ready");
+    playgroundWorkspace.hidden = false;
+    playgroundWorkspace.textContent = `Demo workspace: ${health.workspace} (disposable, created for this playground)`;
+    playgroundActions.hidden = false;
+    playgroundNote.textContent = missing.length
+      ? `The playground server is running, but ${missing.join(" and ")} could not be found. Fix that and reload.`
+      : "This panel runs the real CLI on a disposable demo repository. It does not touch your projects.";
+    if (footerMode) footerMode.textContent = "Local playground · real CLI";
+    setPlaygroundBusy(missing.length > 0);
+  } catch {
+    playground.available = false;
+    setPlaygroundState("Static showcase", "unavailable");
+    playgroundActions.hidden = true;
+    playgroundNote.textContent =
+      "The local playground is not available on this hosted page. To try it, clone the repository, run `npm start` in showcase/, and open http://127.0.0.1:3000. The hosted page stays a read-only example.";
+  }
+}
+
+async function callPlayground(action) {
+  const endpoints = {
+    status: ["api/status", "ziki status"],
+    plan: ["api/init/plan", "ziki init"],
+    review: ["api/review", "ziki review"],
+    reset: ["api/reset", "reset demo workspace"],
+  };
+  const [endpoint, label] = endpoints[action] ?? [];
+  if (!endpoint || playground.busy) return;
+
+  if (action === "reset") {
+    const approved = window.confirm(
+      "Reset the disposable demo workspace? This deletes only the playground copy in your temp directory.",
+    );
+    if (!approved) {
+      playgroundNote.textContent = "Reset cancelled. Nothing was changed.";
+      return;
+    }
+  }
+
+  setPlaygroundBusy(true);
+  showPlaygroundOutput(`$ ${label}\n…`);
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+    });
+    const result = await response.json().catch(() => null);
+    if (!result) {
+      setPlaygroundBusy(false);
+      showPlaygroundOutput(`$ ${label}\nThe local server returned an unreadable response (HTTP ${response.status}).`);
+      return;
+    }
+    renderPlaygroundResult(label, result);
+    if (action === "plan" && result.ok) playground.planReady = true;
+    if ((action === "apply" || action === "reset") && result.ok) playground.planReady = false;
+    setPlaygroundBusy(false);
+  } catch (error) {
+    setPlaygroundBusy(false);
+    showPlaygroundOutput(`$ ${label}\nCould not reach the local playground: ${error.message}`);
+  }
+}
+
+async function applyPlaygroundPlan() {
+  if (!playground.planReady || playground.busy) return;
+  const approved = window.confirm(
+    "Apply the displayed plan to the disposable demo workspace? This runs `ziki init --apply --yes` there, and nothing else.",
+  );
+  if (!approved) {
+    playgroundNote.textContent = "Apply cancelled. Nothing was written.";
+    return;
+  }
+  setPlaygroundBusy(true);
+  showPlaygroundOutput("$ ziki init --apply --yes\n…");
+  try {
+    const response = await fetch("api/init/apply", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ approve: true }),
+    });
+    const result = await response.json().catch(() => null);
+    if (!result) {
+      setPlaygroundBusy(false);
+      showPlaygroundOutput(`$ ziki init --apply --yes\nUnreadable response (HTTP ${response.status}).`);
+      return;
+    }
+    renderPlaygroundResult("ziki init --apply --yes", result);
+    playground.planReady = false;
+    setPlaygroundBusy(false);
+  } catch (error) {
+    setPlaygroundBusy(false);
+    showPlaygroundOutput(`$ ziki init --apply --yes\nCould not reach the local playground: ${error.message}`);
+  }
+}
+
+document.querySelector("#playground-jump").addEventListener("click", () => {
+  document.querySelector("#playground").scrollIntoView({ block: "start" });
+});
+
+for (const button of playgroundButtons) {
+  button.addEventListener("click", () => {
+    if (button.dataset.playgroundAction === "apply") applyPlaygroundPlan();
+    else callPlayground(button.dataset.playgroundAction);
+  });
+}
+
+detectPlayground();

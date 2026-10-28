@@ -34,7 +34,7 @@ The file is ordinary JSON with a trailing newline. Nothing in it is executable:
 |---|---|---|
 | `schemaVersion` | integer | `1`. A newer value blocks `init` instead of being downgraded. |
 | `checks` | array | Verification commands detected from project manifests. Regenerated from the repository on each apply. |
-| `managedFiles` | object | Map of repository-relative path to `sha256:<64 hex>` for files Ziki generated. Empty in Phase 2; reserved for the Phase 4 skill and command files. |
+| `managedFiles` | object | Map of repository-relative path to `sha256:<64 hex>` for files `ziki init` wrote. Phase 4 records the three agent files (`.claude/skills/ziki/SKILL.md`, `.claude/commands/ziki.md`, `.opencode/commands/ziki.md`). Entries for paths this version does not manage are preserved verbatim. |
 | `integrity` | object | `{ "algorithm": "sha256", "hash": "<64 hex>" }`, described below. |
 | `lastObserved` | array | Optional. Recorded check observations, see [`lastObserved`](#lastobserved-recorded-observations) for the definition |
 | any other key | any JSON value | Preserved verbatim across runs. Ziki does not interpret it. |
@@ -161,6 +161,26 @@ removed on failure.
 Ziki refuses to write through symlinks, into a directory, or outside the
 repository root. Relative paths are the only accepted form.
 
+## managedFiles semantics
+
+Each managed path maps to the SHA-256 digest of the exact UTF-8 text (byte-order
+mark excluded) that `init` last wrote there. The map is read on the next plan
+to classify a changed file:
+
+- digest matches both the recorded hash and the current template → `unchanged`
+  (no write, no confirmation);
+- digest matches the recorded hash but not the current template → the template
+  moved ahead (a newer ziki-cli) → `update · changed`, confirmation required;
+- digest does not match the recorded hash → hand-edited or foreign content →
+  `update · modified since last write`, confirmation required;
+- no entry for a path that exists → `update · not written by ziki init`,
+  confirmation required.
+
+Recording happens for every managed path on a successful apply, including
+files that were already unchanged, so the map always describes the content on
+disk at the last apply. Paths not managed by this version are never removed
+from the map.
+
 ## Stable reruns
 
 The file contains no timestamps, build identifiers, or random values. The same
@@ -171,8 +191,8 @@ output. Running `ziki init --apply --yes` twice in a row is a no-op.
 
 - Check detection is heuristic and manifest-based. It is not a test runner.
 - The integrity hash detects accidental edits, not deliberate forgery.
-- `managedFiles` is recorded but unused until Phase 4; Phase 2 does not create
-  skill or command files.
+- `managedFiles` covers only the three fixed agent files this version writes.
+  It does not prove anything about files Ziki never wrote.
 - `lastObserved` is documented for future use only; no Phase 3 command
   records observations, so review shows them as recorded facts, not
   Ziki-verified results.

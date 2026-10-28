@@ -7,8 +7,8 @@
 | Executable name | `ziki` |
 | Document version | 0.3 |
 | Date | 2026-10-28 |
-| Document status | Phase 1 accepted 2026-10-28. Phase 2 (`init`) implemented and under review. Phase 3 (`review`) implemented and under review. |
-| Phase covered | Phases 1–3 (scaffold, `status`, `--json`, `init`, read-only `review`, tests, README, schema docs) |
+| Document status | Phase 1 accepted 2026-10-28. Phase 2 (`init`) implemented and under review. Phase 3 (`review`) implemented and under review. Phase 4 (`/ziki` agent integration) implemented and under review. |
+| Phase covered | Phases 1–4 (scaffold, `status`, `--json`, `init`, read-only `review`, agent skill/command templates, tests, README, schema docs) |
 | Source of truth | Phase 1 research and architecture proposal in this session, verified 2026-10-28 |
 
 > This document describes requirements. It does not authorize implementation.
@@ -413,8 +413,8 @@ release blocker.
 | AC-P3-08 | Review performs no file writes anywhere in its call tree (verified statically and behaviorally) and runs no project script |
 | AC-P3-09 | When Git is missing or a diff read fails or times out, review fails or reports the scope unavailable with reasons; it never invents data |
 | AC-P3-10 | `init` reruns preserve a recorded `lastObserved` block verbatim, and `review` resolves observations by latest valid timestamp, exact command match, and contradiction checks |
-| AC-P4-01 | The generated skill loads in both Claude Code and OpenCode from the shared location |
-| AC-P4-02 | Both slash command files load and invoke the workflow without a frontmatter warning |
+| AC-P4-01 | The generated skill loads in both Claude Code and OpenCode from the shared location. Automation proves the documented location, minimal frontmatter, and name/directory match (`tests/integration/harness-contract.test.js`); official docs confirm both harnesses read `.claude/skills/<name>/SKILL.md`. **Caveat verified 2026-10-28:** when a user-level skill named `ziki` also exists (the bounty platform on this machine), Claude Code resolves personal over project and OpenCode de-duplicates names, so the generated skill is shadowed — a live OpenCode probe in a generated repo reported the bounty skill's description |
+| AC-P4-02 | Both slash command files load and invoke the workflow without a frontmatter warning. Automation proves documented paths and description-only frontmatter (Claude Code merges commands into skills; OpenCode reads `.opencode/commands/`). Live invocation is a manual check and is **not yet verified on this machine** |
 | AC-P5-01 | `npm pack` tarball installs in a clean directory and runs with zero production dependencies |
 
 ---
@@ -524,7 +524,7 @@ None of these block Phase 1 unless marked.
 | OD-05 | Minimum supported Node version | `>=20` | No |
 | OD-06 | JSON versioning policy | Integer `schemaVersion`, additive changes only within a major | No |
 | OD-07 | Exit code when the worktree is dirty | Exit 0, informational | No |
-| OD-08 | OpenCode command directory: singular `command/` (observed on this machine) versus plural `commands/` (documented) | Detect both; write to the documented plural in Phase 4 | No (Phase 4) |
+| OD-08 | OpenCode command directory: singular `command/` (observed on this machine) versus plural `commands/` (documented) | Detect both; write to the documented plural in Phase 4 | Resolved 2026-10-28: detection reads both, `init` writes only the plural |
 | OD-09 | Whether `status` shows detected checks before `init` exists | Yes, labeled `detected`, `executed: false` | No |
 | OD-10 | Demo site framework | Static or Next.js on Vercel | No (Phase 5) |
 | OD-11 | Support for ecosystems beyond Node, Flutter, Go, and Rust | None in Phase 1 | No |
